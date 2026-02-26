@@ -306,7 +306,7 @@ tr.nearest-station td {
 }
 
 tr.nearest-station td:first-child {
-  background: var(--highlight-bg) !important;
+  background: #fdedef !important; /* opaque equivalent of highlight-bg on white */
   color: var(--red);
   font-weight: 700;
   border-left: 3px solid var(--red);
@@ -319,7 +319,7 @@ tr.selected-station td {
 }
 
 tr.selected-station td:first-child {
-  background: rgba(33, 150, 243, 0.1) !important;
+  background: #e9f5fe !important; /* opaque equivalent of selected bg on white */
   color: #1565C0;
   font-weight: 700;
   border-left: 3px solid #1565C0;
