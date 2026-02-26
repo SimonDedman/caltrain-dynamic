@@ -303,6 +303,38 @@ tr.nearest-station td:first-child {
   padding-left: 5px;
 }
 
+/* === User-selected station row === */
+tr.selected-station td {
+  background: rgba(33, 150, 243, 0.1) !important;
+}
+
+tr.selected-station td:first-child {
+  background: rgba(33, 150, 243, 0.1) !important;
+  color: #1565C0;
+  font-weight: 700;
+  border-left: 3px solid #1565C0;
+  padding-left: 5px;
+  cursor: pointer;
+}
+
+#timetable td:first-child {
+  cursor: pointer;
+}
+
+/* === Circled time cell === */
+td.circled {
+  position: relative;
+}
+
+td.circled::after {
+  content: '';
+  position: absolute;
+  inset: 3px 2px;
+  border: 2px solid #1565C0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
 /* === Highlighted "now" column === */
 .now-col {
   background: rgba(227, 24, 55, 0.05) !important;

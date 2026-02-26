@@ -18,6 +18,7 @@
     realtimeDelays: {},
     nextTrain: null,
     nowColIdx: -1,
+    selectedStationIdx: -1,
   };
 
   // ── DOM refs ──
@@ -234,11 +235,51 @@
     if (existing) existing.remove();
     dom.wrapper.insertAdjacentHTML('afterbegin', legendHtml);
 
+    // Re-apply selected station highlight
+    if (state.selectedStationIdx >= 0) {
+      const selRow = dom.tbody.querySelector(
+        `tr[data-station-idx="${state.selectedStationIdx}"]`
+      );
+      if (selRow) selRow.classList.add('selected-station');
+    }
+
     // Update next train banner
     updateNextTrainBanner(trains, stations, current);
 
     // Position marker
     updatePositionMarker();
+  }
+
+  // ── Timetable Interaction (click to highlight/circle) ──
+  function setupTimetableInteraction() {
+    dom.tbody.addEventListener('click', (e) => {
+      const td = e.target.closest('td');
+      if (!td) return;
+      const tr = td.closest('tr');
+      if (!tr) return;
+
+      const stationIdx = parseInt(tr.dataset.stationIdx, 10);
+
+      // Click on station name (first column) → toggle row highlight
+      if (td === tr.cells[0]) {
+        // Deselect previous
+        const prev = dom.tbody.querySelector('tr.selected-station');
+        if (prev) prev.classList.remove('selected-station');
+
+        // Toggle: if clicking the same station, just deselect
+        if (state.selectedStationIdx === stationIdx) {
+          state.selectedStationIdx = -1;
+        } else {
+          state.selectedStationIdx = stationIdx;
+          tr.classList.add('selected-station');
+        }
+        return;
+      }
+
+      // Click on a time cell → toggle circle on it
+      if (td.classList.contains('no-stop')) return;
+      td.classList.toggle('circled');
+    });
   }
 
   // ── Next Train Banner ──
@@ -811,6 +852,7 @@
 
     dom.loading.classList.add('hidden');
     renderTimetable();
+    setupTimetableInteraction();
     setupGeolocation();
 
     // Start real-time if API key is stored
