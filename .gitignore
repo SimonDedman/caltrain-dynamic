@@ -1,0 +1,14 @@
+# Raw GTFS data (large, re-downloadable)
+gtfs_data/
+caltrain_schedule_data.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/

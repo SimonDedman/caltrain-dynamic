@@ -1,0 +1,28 @@
+{
+  "name": "Caltrain Live",
+  "short_name": "Caltrain",
+  "description": "Dynamic Caltrain schedule with live location tracking",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#E31837",
+  "orientation": "any",
+  "categories": ["transportation", "travel"],
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

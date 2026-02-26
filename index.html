@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#E31837">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Dynamic Caltrain schedule with live location tracking">
+  <title>Caltrain Live</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="header">
+    <div class="header-top">
+      <h1>Caltrain Live</h1>
+      <div class="header-right">
+        <span id="clock"></span>
+        <button id="settings-btn" aria-label="Settings" title="Settings">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 13a3 3 0 100-6 3 3 0 000 6zm7.5-3c0 .34-.03.67-.08 1l2.17 1.7a.5.5 0 01.12.64l-2.06 3.56a.5.5 0 01-.61.22l-2.56-1.03c-.53.41-1.11.74-1.74.98l-.39 2.73a.5.5 0 01-.49.42h-4.12a.5.5 0 01-.49-.42l-.39-2.73c-.63-.24-1.21-.57-1.74-.98L2.56 17.12a.5.5 0 01-.61-.22L-.11 13.34a.5.5 0 01.12-.64L2.18 11c-.05-.33-.08-.66-.08-1s.03-.67.08-1L.01 7.3a.5.5 0 01-.12-.64l2.06-3.56a.5.5 0 01.61-.22l2.56 1.03c.53-.41 1.11-.74 1.74-.98L7.25.2A.5.5 0 017.74-.22h4.12a.5.5 0 01.49.42l.39 2.73c.63.24 1.21.57 1.74.98l2.56-1.03a.5.5 0 01.61.22l2.06 3.56a.5.5 0 01-.12.64L17.42 9c.05.33.08.66.08 1z" transform="translate(0,1) scale(0.95)"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <nav class="direction-tabs">
+      <button class="tab active" data-dir="northbound">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1L11 9H1z"/></svg>
+        Northbound
+      </button>
+      <button class="tab" data-dir="southbound">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M6 11L1 3h10z"/></svg>
+        Southbound
+      </button>
+    </nav>
+    <div class="info-bar">
+      <span id="schedule-badge" class="badge">Weekday</span>
+      <span id="station-badge" class="badge badge-location hidden">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="4"/></svg>
+        <span id="nearest-station-name">Locating...</span>
+      </span>
+      <span id="realtime-badge" class="badge badge-rt hidden">Live</span>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="timetable-wrapper" id="timetable-wrapper">
+      <table id="timetable">
+        <thead id="timetable-head"></thead>
+        <tbody id="timetable-body"></tbody>
+      </table>
+      <div id="position-marker" class="hidden"></div>
+    </div>
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>Loading schedule...</p>
+    </div>
+  </main>
+
+  <div id="next-train-banner" class="hidden">
+    <div class="banner-content">
+      <span class="banner-label">Next train</span>
+      <span class="banner-train" id="banner-train-num"></span>
+      <span class="banner-time" id="banner-train-time"></span>
+      <span class="banner-dest" id="banner-train-dest"></span>
+    </div>
+    <button id="banner-scroll-btn" title="Show on timetable">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 3l5 5h-3v5H6V8H3z"/></svg>
+    </button>
+  </div>
+
+  <div id="settings-overlay" class="overlay hidden">
+    <div class="overlay-panel">
+      <div class="overlay-header">
+        <h2>Settings</h2>
+        <button id="settings-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="overlay-body">
+        <div class="setting-group">
+          <label class="setting-label">511.org API Key (for real-time data)</label>
+          <input type="text" id="api-key-input" placeholder="Enter your API key" autocomplete="off">
+          <p class="setting-hint">
+            <a href="https://511.org/open-data/token" target="_blank" rel="noopener">Get a free API key from 511.org</a>
+          </p>
+        </div>
+        <div class="setting-group">
+          <label class="setting-label">Location Tracking</label>
+          <button id="location-toggle" class="toggle-btn">Enable Location</button>
+          <p class="setting-hint">Shows your nearest station and tracks position between stations.</p>
+        </div>
+        <div class="setting-group">
+          <label class="setting-label">Schedule Data</label>
+          <p class="setting-hint" id="data-info">Schedule data valid through Aug 31, 2026</p>
+          <button id="refresh-data-btn" class="secondary-btn">Check for Updates</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
