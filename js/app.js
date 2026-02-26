@@ -19,6 +19,7 @@
     nextTrain: null,
     nowColIdx: -1,
     selectedStationIdx: -1,
+    circledCells: new Set(),   // Set of "stationIdx,colIdx" keys
   };
 
   // ── DOM refs ──
@@ -243,6 +244,13 @@
       if (selRow) selRow.classList.add('selected-station');
     }
 
+    // Re-apply circled time cells
+    for (const key of state.circledCells) {
+      const [sIdx, cIdx] = key.split(',').map(Number);
+      const row = dom.tbody.querySelector(`tr[data-station-idx="${sIdx}"]`);
+      if (row && row.cells[cIdx]) row.cells[cIdx].classList.add('circled');
+    }
+
     // Update next train banner
     updateNextTrainBanner(trains, stations, current);
 
@@ -278,7 +286,15 @@
 
       // Click on a time cell → toggle circle on it
       if (td.classList.contains('no-stop')) return;
-      td.classList.toggle('circled');
+      const colIdx = td.cellIndex;
+      const key = `${stationIdx},${colIdx}`;
+      if (state.circledCells.has(key)) {
+        state.circledCells.delete(key);
+        td.classList.remove('circled');
+      } else {
+        state.circledCells.add(key);
+        td.classList.add('circled');
+      }
     });
   }
 
@@ -821,10 +837,31 @@
     // Update clock every second
     setInterval(updateClock, 1000);
 
-    // Re-render timetable every minute (to update "now" column)
+    // Track the last minute we rendered so we only re-render on change
+    let lastRenderedMinute = nowMinutes();
+
+    // Check every 5 seconds if the minute changed; lightweight check avoids
+    // full DOM rebuilds every tick while still feeling "live".
     setInterval(() => {
-      renderTimetable();
-    }, 60000);
+      const cur = nowMinutes();
+      if (cur !== lastRenderedMinute) {
+        lastRenderedMinute = cur;
+        renderTimetable();
+      }
+    }, 5000);
+
+    // Re-render immediately when the tab becomes visible again (browsers
+    // throttle/suspend timers for background tabs, so the column can go stale).
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        const cur = nowMinutes();
+        if (cur !== lastRenderedMinute) {
+          lastRenderedMinute = cur;
+          renderTimetable();
+        }
+        updateClock();
+      }
+    });
   }
 
   // ── Adjust header height ──
