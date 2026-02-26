@@ -188,11 +188,21 @@
       <span class="legend-item"><span class="legend-dot" style="background:var(--south-bg)"></span>S.County</span>
     </div>`;
 
-    // Determine "now" column: first train whose last stop hasn't departed yet
+    // Helper: relevant departure minute for a train.
+    // If we know the user's station, use the stop time there;
+    // otherwise fall back to the train's last stop.
+    function trainRelevantMinutes(train) {
+      if (state.nearestStationIdx >= 0) {
+        const atStation = train.times[state.nearestStationIdx];
+        if (atStation) return timeToMinutes(atStation);
+      }
+      return getLastStopMinutes(train);
+    }
+
+    // Determine "now" column: first train that hasn't departed the user's station yet
     state.nowColIdx = -1;
     for (let i = 0; i < trains.length; i++) {
-      const lastMin = getLastStopMinutes(trains[i]);
-      if (lastMin >= current) {
+      if (trainRelevantMinutes(trains[i]) >= current) {
         state.nowColIdx = i;
         break;
       }
@@ -203,7 +213,7 @@
     for (let i = 0; i < trains.length; i++) {
       const t = trains[i];
       const info = typeInfo[t.type] || typeInfo.L;
-      const isPast = getLastStopMinutes(t) < current;
+      const isPast = trainRelevantMinutes(t) < current;
       const isNow = i === state.nowColIdx;
       let cls = info.cls;
       if (isPast) cls += ' past-train';
@@ -226,7 +236,7 @@
 
       for (let i = 0; i < trains.length; i++) {
         const time = trains[i].times[station.origIdx];
-        const isPast = getLastStopMinutes(trains[i]) < current;
+        const isPast = trainRelevantMinutes(trains[i]) < current;
         const isNow = i === state.nowColIdx;
         let cls = [];
         if (!time) cls.push('no-stop');
