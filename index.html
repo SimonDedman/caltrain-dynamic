@@ -37,7 +37,7 @@
       </button>
     </nav>
     <div class="info-bar">
-      <span id="schedule-badge" class="badge">Weekday</span>
+      <span id="schedule-badge" class="badge badge-schedule" title="Tap to switch">Weekday</span>
       <span id="station-badge" class="badge badge-location hidden">
         <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="4"/></svg>
         <span id="nearest-station-name">Locating...</span>
@@ -81,7 +81,10 @@
       <div class="overlay-body">
         <div class="setting-group">
           <label class="setting-label">511.org API Key (for real-time data)</label>
-          <input type="text" id="api-key-input" placeholder="Enter your API key" autocomplete="off">
+          <div class="api-key-row">
+            <input type="text" id="api-key-input" placeholder="Enter your API key" autocomplete="off">
+            <button id="api-key-save" class="save-btn">Save</button>
+          </div>
           <p class="setting-hint">
             <a href="https://511.org/open-data/token" target="_blank" rel="noopener">Get a free API key from 511.org</a>
           </p>

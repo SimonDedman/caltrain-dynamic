@@ -99,10 +99,29 @@
   function detectScheduleType() {
     const now = new Date();
     const day = now.getDay();
-    // TODO: Check holiday calendar_dates
     state.scheduleType = day === 0 || day === 6 ? 'weekend' : 'weekday';
-    dom.scheduleBadge.textContent =
-      state.scheduleType === 'weekend' ? 'Weekend' : 'Weekday';
+    updateScheduleBadge();
+
+    // Allow user to tap badge to toggle
+    dom.scheduleBadge.addEventListener('click', () => {
+      state.scheduleType = state.scheduleType === 'weekday' ? 'weekend' : 'weekday';
+      updateScheduleBadge();
+      renderTimetable();
+      requestAnimationFrame(() => scrollToNow());
+    });
+  }
+
+  function updateScheduleBadge() {
+    const isAuto = isScheduleAutoDetected();
+    const label = state.scheduleType === 'weekend' ? 'Weekend' : 'Weekday';
+    dom.scheduleBadge.textContent = isAuto ? label : label + ' *';
+  }
+
+  function isScheduleAutoDetected() {
+    const now = new Date();
+    const day = now.getDay();
+    const autoType = day === 0 || day === 6 ? 'weekend' : 'weekday';
+    return state.scheduleType === autoType;
   }
 
   // ── Timetable Rendering ──
@@ -717,6 +736,18 @@
         dom.settingsOverlay.classList.add('hidden');
         saveSettings();
       }
+    });
+
+    // API key save button
+    $('#api-key-save').addEventListener('click', () => {
+      saveSettings();
+      const btn = $('#api-key-save');
+      btn.textContent = 'Saved!';
+      btn.classList.add('saved');
+      setTimeout(() => {
+        btn.textContent = 'Save';
+        btn.classList.remove('saved');
+      }, 2000);
     });
 
     // Location toggle

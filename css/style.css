@@ -147,6 +147,16 @@ header {
   color: var(--gray-600);
 }
 
+.badge-schedule {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s;
+}
+
+.badge-schedule:active {
+  transform: scale(0.95);
+}
+
 .badge-location {
   background: #E8F5E9;
   color: #2E7D32;
@@ -519,6 +529,37 @@ thead .now-col {
   font-size: 13px;
   margin-bottom: 6px;
   color: var(--gray-800);
+}
+
+.api-key-row {
+  display: flex;
+  gap: 8px;
+}
+
+.api-key-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.save-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--red);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.save-btn:hover {
+  background: var(--red-dark);
+}
+
+.save-btn.saved {
+  background: #4CAF50;
 }
 
 .setting-group input[type="text"] {
