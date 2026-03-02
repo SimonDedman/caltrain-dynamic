@@ -1,12 +1,12 @@
-const CACHE_NAME = 'caltrain-live-v3';
+const CACHE_NAME = 'caltrain-live-v4';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/app.js',
-  '/data/schedule.json',
-  '/manifest.json',
-  '/icons/icon.svg',
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './data/schedule.json',
+  './manifest.json',
+  './icons/icon.svg',
 ];
 
 // Install: cache all static assets
