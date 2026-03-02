@@ -1,4 +1,4 @@
-const CACHE_NAME = 'caltrain-live-v4';
+const CACHE_NAME = 'caltrain-live-v5';
 const ASSETS = [
   './',
   './index.html',

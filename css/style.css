@@ -357,8 +357,14 @@ thead .now-col {
 }
 
 /* === Past trains (dimmed) === */
-.past-train {
+td.past-train {
   opacity: 0.35;
+}
+
+/* Sticky headers must stay fully opaque so scrolled content
+   doesn't show through; dim visually via desaturation instead. */
+thead th.past-train {
+  filter: saturate(0.15) brightness(1.1);
 }
 
 /* === Position Marker (between stations) === */
