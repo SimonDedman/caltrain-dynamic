@@ -279,9 +279,12 @@
     if (existing) existing.remove();
     dom.wrapper.insertAdjacentHTML('afterbegin', legendHtml);
 
-    // Re-apply circled time cells
+    // Re-apply circled time cells (keys are direction-scoped)
     for (const key of state.circledCells) {
-      const [sIdx, cIdx] = key.split(',').map(Number);
+      const parts = key.split(',');
+      if (parts[0] !== state.direction) continue;
+      const sIdx = Number(parts[1]);
+      const cIdx = Number(parts[2]);
       const row = dom.tbody.querySelector(`tr[data-station-idx="${sIdx}"]`);
       if (row && row.cells[cIdx]) row.cells[cIdx].classList.add('circled');
     }
@@ -322,7 +325,7 @@
       // Click on a time cell → toggle circle on it
       if (td.classList.contains('no-stop')) return;
       const colIdx = td.cellIndex;
-      const key = `${stationIdx},${colIdx}`;
+      const key = `${state.direction},${stationIdx},${colIdx}`;
       if (state.circledCells.has(key)) {
         state.circledCells.delete(key);
         td.classList.remove('circled');
