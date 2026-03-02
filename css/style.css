@@ -294,6 +294,7 @@ th.train-type-label {
   overflow: hidden;
   text-overflow: ellipsis;
   border-right: 1px solid var(--gray-200);
+  cursor: pointer;
 }
 
 .no-stop {

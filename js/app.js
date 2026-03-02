@@ -9,7 +9,8 @@
     direction: 'northbound',
     scheduleType: 'weekday',
     data: null,
-    nearestStationIdx: -1,
+    geoStationIdx: -1,        // station detected by geolocation
+    manualStationIdx: -1,      // station manually selected by user tap
     betweenStations: null, // { fromIdx, toIdx, fraction }
     userLat: null,
     userLon: null,
@@ -18,9 +19,14 @@
     realtimeDelays: {},
     nextTrain: null,
     nowColIdx: -1,
-    selectedStationIdx: -1,
     circledCells: new Set(),   // Set of "stationIdx,colIdx" keys
   };
+
+  // Effective station: manual selection takes priority, geo is fallback
+  function effectiveStationIdx() {
+    if (state.manualStationIdx >= 0) return state.manualStationIdx;
+    return state.geoStationIdx;
+  }
 
   // ── DOM refs ──
   const $ = (sel) => document.querySelector(sel);
@@ -192,8 +198,9 @@
     // If we know the user's station, use the stop time there;
     // otherwise fall back to the train's last stop.
     function trainRelevantMinutes(train) {
-      if (state.nearestStationIdx >= 0) {
-        const atStation = train.times[state.nearestStationIdx];
+      const stIdx = effectiveStationIdx();
+      if (stIdx >= 0) {
+        const atStation = train.times[stIdx];
         if (atStation) return timeToMinutes(atStation);
       }
       return getLastStopMinutes(train);
@@ -228,8 +235,9 @@
 
     // Build body
     let bodyHtml = '';
+    const effStation = effectiveStationIdx();
     for (const station of stations) {
-      const isNearest = station.origIdx === state.nearestStationIdx;
+      const isNearest = station.origIdx === effStation;
       let rowCls = isNearest ? ' class="nearest-station"' : '';
       bodyHtml += `<tr${rowCls} data-station-idx="${station.origIdx}">`;
       bodyHtml += `<td>${station.name}</td>`;
@@ -265,14 +273,6 @@
     if (existing) existing.remove();
     dom.wrapper.insertAdjacentHTML('afterbegin', legendHtml);
 
-    // Re-apply selected station highlight
-    if (state.selectedStationIdx >= 0) {
-      const selRow = dom.tbody.querySelector(
-        `tr[data-station-idx="${state.selectedStationIdx}"]`
-      );
-      if (selRow) selRow.classList.add('selected-station');
-    }
-
     // Re-apply circled time cells
     for (const key of state.circledCells) {
       const [sIdx, cIdx] = key.split(',').map(Number);
@@ -297,19 +297,19 @@
 
       const stationIdx = parseInt(tr.dataset.stationIdx, 10);
 
-      // Click on station name (first column) → toggle row highlight
+      // Click on station name (first column) → set as home station
       if (td === tr.cells[0]) {
-        // Deselect previous
-        const prev = dom.tbody.querySelector('tr.selected-station');
-        if (prev) prev.classList.remove('selected-station');
-
-        // Toggle: if clicking the same station, just deselect
-        if (state.selectedStationIdx === stationIdx) {
-          state.selectedStationIdx = -1;
+        if (state.manualStationIdx === stationIdx) {
+          // Tapping same station again: deselect
+          state.manualStationIdx = -1;
+          localStorage.removeItem('caltrain_manual_station');
         } else {
-          state.selectedStationIdx = stationIdx;
-          tr.classList.add('selected-station');
+          state.manualStationIdx = stationIdx;
+          localStorage.setItem('caltrain_manual_station', String(stationIdx));
         }
+        updateStationBadge();
+        renderTimetable();
+        requestAnimationFrame(() => scrollToNow());
         return;
       }
 
@@ -329,17 +329,18 @@
 
   // ── Next Train Banner ──
   function updateNextTrainBanner(trains, stations, current) {
-    if (state.nearestStationIdx < 0) {
+    const stIdx = effectiveStationIdx();
+    if (stIdx < 0) {
       dom.banner.classList.add('hidden');
       document.body.style.setProperty('--banner-height', '0px');
       return;
     }
 
-    // Find next train from nearest station
+    // Find next train from effective station
     let nextTrain = null;
     let nextTime = null;
     for (const train of trains) {
-      const time = train.times[state.nearestStationIdx];
+      const time = train.times[stIdx];
       if (!time) continue;
       const min = timeToMinutes(time);
       if (min >= current) {
@@ -390,9 +391,10 @@
 
     // Find nearest station row for vertical scroll
     let targetRow = null;
-    if (state.nearestStationIdx >= 0) {
+    const effSt = effectiveStationIdx();
+    if (effSt >= 0) {
       targetRow = dom.tbody.querySelector(
-        `tr[data-station-idx="${state.nearestStationIdx}"]`
+        `tr[data-station-idx="${effSt}"]`
       );
     }
 
@@ -450,15 +452,14 @@
 
     // Only set if within 8km of a station (reasonable for Caltrain corridor)
     if (minDist < 8000) {
-      state.nearestStationIdx = nearestIdx;
-      dom.stationBadge.classList.remove('hidden');
-      dom.stationName.textContent = stations[nearestIdx].name;
+      state.geoStationIdx = nearestIdx;
+      updateStationBadge();
 
       // Detect between-stations
       detectBetweenStations();
     } else {
-      state.nearestStationIdx = -1;
-      dom.stationBadge.classList.add('hidden');
+      state.geoStationIdx = -1;
+      updateStationBadge();
       state.betweenStations = null;
     }
   }
@@ -539,6 +540,18 @@
     dom.posMarker.classList.remove('hidden');
   }
 
+  function updateStationBadge() {
+    const stIdx = effectiveStationIdx();
+    if (stIdx >= 0 && state.data) {
+      const station = state.data.stations[stIdx];
+      const isManual = state.manualStationIdx >= 0;
+      dom.stationName.textContent = station.name + (isManual ? '' : ' (GPS)');
+      dom.stationBadge.classList.remove('hidden');
+    } else {
+      dom.stationBadge.classList.add('hidden');
+    }
+  }
+
   function setupGeolocation() {
     const locationPref = localStorage.getItem('caltrain_location');
 
@@ -567,11 +580,11 @@
       (pos) => {
         state.userLat = pos.coords.latitude;
         state.userLon = pos.coords.longitude;
-        const prevNearest = state.nearestStationIdx;
+        const prevGeo = state.geoStationIdx;
         findNearestStation();
 
-        // Re-render if station changed
-        if (prevNearest !== state.nearestStationIdx) {
+        // Re-render if effective station changed (only matters if no manual override)
+        if (prevGeo !== state.geoStationIdx && state.manualStationIdx < 0) {
           renderTimetable();
           scrollToNow();
         } else {
@@ -601,13 +614,13 @@
       navigator.geolocation.clearWatch(state.watchId);
       state.watchId = null;
     }
-    state.nearestStationIdx = -1;
+    state.geoStationIdx = -1;
     state.betweenStations = null;
     state.userLat = null;
     state.userLon = null;
-    dom.stationBadge.classList.add('hidden');
     dom.posMarker.classList.add('hidden');
     localStorage.setItem('caltrain_location', 'false');
+    updateStationBadge();
     updateLocationToggle();
     renderTimetable();
   }
@@ -939,7 +952,17 @@
     const loaded = await loadData();
     if (!loaded) return;
 
+    // Restore manually selected station from localStorage
+    const savedStation = localStorage.getItem('caltrain_manual_station');
+    if (savedStation !== null) {
+      const idx = parseInt(savedStation, 10);
+      if (idx >= 0 && idx < state.data.stations.length) {
+        state.manualStationIdx = idx;
+      }
+    }
+
     dom.loading.classList.add('hidden');
+    updateStationBadge();
     renderTimetable();
     setupTimetableInteraction();
     setupGeolocation();
