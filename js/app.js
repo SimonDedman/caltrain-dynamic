@@ -71,8 +71,14 @@
     return `${hour12}:${String(m).padStart(2, '0')}${ampm}`;
   }
 
+  // All time logic must use Pacific time since Caltrain is in California,
+  // regardless of the user's system timezone.
+  function pacificNow() {
+    return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  }
+
   function nowMinutes() {
-    const now = new Date();
+    const now = pacificNow();
     return now.getHours() * 60 + now.getMinutes();
   }
 
@@ -103,7 +109,7 @@
 
   // ── Schedule Type Detection ──
   function detectScheduleType() {
-    const now = new Date();
+    const now = pacificNow();
     const day = now.getDay();
     state.scheduleType = day === 0 || day === 6 ? 'weekend' : 'weekday';
     updateScheduleBadge();
@@ -124,7 +130,7 @@
   }
 
   function isScheduleAutoDetected() {
-    const now = new Date();
+    const now = pacificNow();
     const day = now.getDay();
     const autoType = day === 0 || day === 6 ? 'weekend' : 'weekday';
     return state.scheduleType === autoType;
@@ -739,7 +745,7 @@
 
   // ── Clock ──
   function updateClock() {
-    const now = new Date();
+    const now = pacificNow();
     const h = now.getHours();
     const m = now.getMinutes();
     const ampm = h >= 12 ? 'PM' : 'AM';
