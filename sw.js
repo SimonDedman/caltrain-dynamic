@@ -1,4 +1,4 @@
-const CACHE_NAME = 'caltrain-live-v1';
+const CACHE_NAME = 'caltrain-live-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -53,15 +53,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For other assets: cache first, fall back to network
+  // For other assets: network first, fall back to cache
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
+    fetch(event.request)
+      .then((response) => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         return response;
-      });
-    })
+      })
+      .catch(() => caches.match(event.request))
   );
 });
