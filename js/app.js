@@ -841,6 +841,7 @@
         $$('.direction-tabs .tab').forEach((t) => t.classList.remove('active'));
         tab.classList.add('active');
         state.direction = tab.dataset.dir;
+        state.circledCells.clear();
         renderTimetable();
         // Brief delay to let DOM update, then scroll
         requestAnimationFrame(() => scrollToNow());
