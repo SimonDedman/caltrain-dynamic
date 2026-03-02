@@ -540,11 +540,18 @@
   }
 
   function setupGeolocation() {
-    // Check if location was previously enabled
-    const locationEnabled = localStorage.getItem('caltrain_location') === 'true';
-    if (locationEnabled) {
+    const locationPref = localStorage.getItem('caltrain_location');
+
+    // If previously enabled, start watching
+    if (locationPref === 'true') {
+      startWatchingPosition();
+    } else if (locationPref === null) {
+      // First visit: auto-request location (browser will show its own
+      // permission prompt; if denied we silently fall back to no location)
       startWatchingPosition();
     }
+    // If explicitly set to 'false', do nothing — user disabled it in Settings
+
     updateLocationToggle();
   }
 
@@ -573,6 +580,10 @@
       },
       (err) => {
         console.warn('Geolocation error:', err.message);
+        // If user denied permission, record it so we don't ask again
+        if (err.code === err.PERMISSION_DENIED) {
+          stopWatchingPosition();
+        }
       },
       {
         enableHighAccuracy: true,
